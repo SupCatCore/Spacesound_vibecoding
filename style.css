@@ -1,5 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Yandex+Sans+Text:wght@300;400;500&display=swap');
 body {
-	font-family: sans-serif;
+	font-family: 'Yandex Sans Text', sans-serif;
 }
 
 .container {
@@ -28,34 +29,43 @@ body {
 		z-index: 200;
 		text-align: center;
 		margin-bottom: 5vh;
-		color: white;
+		color: #FFDB4D;
 		margin: 0;
 		padding: 0;
+		font-weight: 500;
 	}
 
 	& h3 {
 		flex: 0  1 100%;
 		text-align: center;
-		color: white;
+		color: #FFFFFF;
 		height: 15vh;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		margin: 0;
 		padding: 0;
+		font-weight: 300;
 	}
 }
 
 .button {
 	width: 200px;
 	height: 50px;
-	background-color: white;
-	border-radius: 5px;
+	background-color: #FFDB4D;
+	color: #000000;
+	border-radius: 8px;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	cursor: pointer;
-	font-weight: bold;
+	font-weight: 500;
+	font-size: 16px;
+	transition: background-color 0.2s;
+}
+
+.button:hover {
+	background-color: #FFC700;
 }
 
 .controls {
@@ -68,36 +78,57 @@ body {
 }
 
 .controls__speeddown {
-	padding: 5px 12px;
+	padding: 8px 12px;
 	margin-right: 10px;
-	background-color: rgba(255, 255, 0, 0.8);
-	color: #333;
-	border-radius: 3px;
+	background-color: #FFDB4D;
+	color: #000000;
+	border-radius: 6px;
 	cursor: pointer;
-	border: 1px solid rgba(128, 128, 128, 0.5);
-	font-size: 14px;
-	font-weight: bold;
+	border: none;
+	font-size: 16px;
+	font-weight: 500;
+	transition: background-color 0.2s;
+}
+
+.controls__speeddown:hover {
+	background-color: #FFC700;
 }
 
 .controls__speedup {
-	padding: 5px 10px;
-	background-color: rgba(255, 255, 0, 0.8);
-	color: #333;
-	border-radius: 3px;
+	padding: 8px 10px;
+	background-color: #FFDB4D;
+	color: #000000;
+	border-radius: 6px;
 	cursor: pointer;
-	border: 1px solid rgba(128, 128, 128, 0.5);
-	font-size: 14px;
-	font-weight: bold;
+	border: none;
+.logo {
+	width: 64px;
+	height: 64px;
+	margin-bottom: 20px;
+	border-radius: 8px;
+}
+	font-size: 16px;
+	font-weight: 500;
+	transition: background-color 0.2s;
+}
+
+.controls__speedup:hover {
+	background-color: #FFC700;
 }
 
 .controls__pause {
-	padding: 5px 10px;
-	background-color: rgba(255, 255, 0, 0.8);
-	color: #333;
-	border-radius: 3px;
+	padding: 8px 10px;
+	background-color: #FFDB4D;
+	color: #000000;
+	border-radius: 6px;
 	cursor: pointer;
 	margin-left: 10px;
-	border: 1px solid rgba(128, 128, 128, 0.5);
-	font-size: 14px;
-	font-weight: bold;
+	border: none;
+	font-size: 16px;
+	font-weight: 500;
+	transition: background-color 0.2s;
+}
+
+.controls__pause:hover {
+	background-color: #FFC700;
 }
