@@ -42,6 +42,84 @@ class SystemScale {
 	}
 }
 
+class Satellite {
+	constructor(options) {
+		let {centerX, centerY, radius, speed, size} = options;
+		this.centerX = centerX;
+		this.centerY = centerY;
+		this.radius = radius;
+		this.speed = speed;
+		this.size = size;
+		this.angle = 0;
+		this.x = centerX + radius;
+		this.y = centerY;
+		this.color = '#FFDB4D';
+		this.trail = [];
+		this.trailLength = 20;
+		this.noiseOffsetX = Math.random() * 1000;
+		this.noiseOffsetY = Math.random() * 1000;
+		this.noiseSpeed = 0.01;
+	}
+
+	update() {
+		this.angle += this.speed;
+		let baseX = this.centerX + Math.cos(this.angle) * this.radius;
+		let baseY = this.centerY + Math.sin(this.angle) * this.radius;
+
+		// Хаотичное движение с шумом
+		let noiseX = (Math.sin(this.noiseOffsetX) + Math.cos(this.noiseOffsetX * 0.7)) * 30;
+		let noiseY = (Math.sin(this.noiseOffsetY) + Math.cos(this.noiseOffsetY * 0.7)) * 30;
+
+		this.x = baseX + noiseX;
+		this.y = baseY + noiseY;
+
+		this.noiseOffsetX += this.noiseSpeed;
+		this.noiseOffsetY += this.noiseSpeed;
+
+		// Обновление следа
+		this.trail.push({x: this.x, y: this.y});
+		if (this.trail.length > this.trailLength) {
+			this.trail.shift();
+		}
+	}
+
+	draw(ctx) {
+		// Отрисовка следа
+		for (let i = 0; i < this.trail.length; i++) {
+			let alpha = i / this.trailLength * 0.5;
+			ctx.fillStyle = `rgba(255, 219, 77, ${alpha})`;
+			ctx.beginPath();
+			ctx.arc(this.trail[i].x, this.trail[i].y, this.size * 0.3, 0, 2 * Math.PI);
+			ctx.fill();
+		}
+
+		// Отрисовка корпуса спутника (прямоугольник с деталями)
+		ctx.fillStyle = '#C0C0C0';
+		ctx.fillRect(this.x - this.size, this.y - this.size * 0.5, this.size * 2, this.size);
+
+		// Солнечные панели
+		ctx.fillStyle = '#000080';
+		ctx.fillRect(this.x - this.size * 1.5, this.y - this.size * 0.3, this.size * 0.5, this.size * 0.6);
+		ctx.fillRect(this.x + this.size, this.y - this.size * 0.3, this.size * 0.5, this.size * 0.6);
+
+		// Антенны
+		ctx.strokeStyle = '#FFFFFF';
+		ctx.lineWidth = 2;
+		ctx.beginPath();
+		ctx.moveTo(this.x, this.y - this.size * 0.5);
+		ctx.lineTo(this.x, this.y - this.size * 1.2);
+		ctx.moveTo(this.x + this.size, this.y);
+		ctx.lineTo(this.x + this.size * 1.5, this.y);
+		ctx.stroke();
+
+		// Светящаяся точка (двигатель)
+		ctx.fillStyle = '#FF4500';
+		ctx.beginPath();
+		ctx.arc(this.x - this.size, this.y, this.size * 0.3, 0, 2 * Math.PI);
+		ctx.fill();
+	}
+}
+
 class StarSystem {
 	constructor(options) {
 		let {height, width, maxSize, minSize, starCount, speed, speedIncrement} = options;
@@ -59,6 +137,22 @@ class StarSystem {
 		this.stars = [];
 		this.scale = new SystemScale(2);
 		this.isSpacePressed = false;
+
+		this.instruments = ['sine', 'square', 'sawtooth', 'triangle'];
+		this.currentInstrumentIndex = 0;
+
+		this.backgrounds = ['#000000', '#000080', '#800000', '#008000', '#800080', '#808000', '#008080', '#404040'];
+		this.currentBackgroundIndex = 0;
+
+		this.flashes = [];
+
+		this.satellite = new Satellite({
+			centerX: this.width / 2,
+			centerY: this.height / 2,
+			radius: 100,
+			speed: 0.02,
+			size: 24
+		});
 		
 		this.filter = new Tone.Filter({
 			type: 'lowpass',
@@ -92,6 +186,30 @@ class StarSystem {
 		
 		this.delay = new Tone.PingPongDelay("4n", 0.6).toMaster();
 		this.delay.wet.value = 0.3;
+
+		// Эффекты для спутника
+		this.satelliteFilter = new Tone.Filter({
+			type: 'lowpass',
+			frequency: 800,
+			rolloff: -24
+		}).toMaster();
+
+		this.satelliteReverb = new Tone.Reverb({
+			decay: 2,
+			wet: 0.3
+		}).toMaster();
+
+		this.satelliteSynth = new Tone.Synth({
+			oscillator: {
+				type: 'sawtooth'
+			},
+			envelope: {
+				attack: 0.1,
+				decay: 0.2,
+				sustain: 0.5,
+				release: 0.8
+			}
+		}).chain(this.satelliteFilter, this.satelliteReverb);
 
 		this.createCanvas();
 		this.createInitialStars();
@@ -214,6 +332,22 @@ class StarSystem {
 		}
 	}
 
+	changeInstrument() {
+		this.currentInstrumentIndex = (this.currentInstrumentIndex + 1) % this.instruments.length;
+		this.currentInstrument = this.instruments[this.currentInstrumentIndex];
+		document.getElementById('instrument').innerHTML = `Инструмент: ${this.currentInstrument.charAt(0).toUpperCase() + this.currentInstrument.slice(1)}`;
+		// Обновление всех существующих звёзд
+		for(let star of this.stars) {
+			star.synth.oscillator.type = this.currentInstrument;
+		}
+	}
+
+	changeBackground() {
+		this.currentBackgroundIndex = (this.currentBackgroundIndex + 1) % this.backgrounds.length;
+		this.currentBackground = this.backgrounds[this.currentBackgroundIndex];
+		document.body.style.backgroundColor = this.currentBackground;
+	}
+
 	addStarAtPosition(x, y) {
 		let randomSize = Math.random() * (this.maxSize - this.minSize) + this.minSize;
 		let randomPan = Math.random() * (1 - -1) + -1;
@@ -249,6 +383,44 @@ class StarSystem {
 
 		this.drawMidPoint();
 
+		// Обновление и отрисовка спутника
+		this.satellite.update();
+		this.satellite.draw(this.ctx);
+
+		// Обновление и отрисовка вспышек
+		for (let i = this.flashes.length - 1; i >= 0; i--) {
+			let flash = this.flashes[i];
+			flash.opacity -= 0.05;
+			if (flash.opacity <= 0) {
+				this.flashes.splice(i, 1);
+			} else {
+				this.ctx.fillStyle = `rgba(255, 255, 255, ${flash.opacity})`;
+				this.ctx.beginPath();
+				this.ctx.arc(flash.x, flash.y, flash.size, 0, 2 * Math.PI);
+				this.ctx.fill();
+			}
+		}
+
+		// Влияние спутника на ритм и громкость
+		let rhythmFactor = Math.sin(this.satellite.angle * 2) * 0.5 + 0.5; // 0-1
+		let volumeFactor = Math.cos(this.satellite.angle) * 0.3 + 0.7; // 0.4-1
+
+		// Изменение скорости звёзд (ритм)
+		let baseSpeed = 0.6;
+		this.speed = baseSpeed + rhythmFactor * 0.4;
+
+		// Изменение громкости дронов
+		this.drone.volume.value = -20 + volumeFactor * 10;
+		this.droneLeft.volume.value = -20 + volumeFactor * 10;
+		this.droneRight.volume.value = -20 + volumeFactor * 10;
+		this.droneTop.volume.value = -20 + volumeFactor * 10;
+
+		// Периодические звуки спутника
+		if (Math.floor(this.satellite.angle / (Math.PI * 2) * 8) !== Math.floor((this.satellite.angle - this.satellite.speed) / (Math.PI * 2) * 8)) {
+			let note = Tone.Midi(60 + Math.floor(rhythmFactor * 12)).toFrequency();
+			this.satelliteSynth.triggerAttackRelease(note, '16n', Tone.now(), volumeFactor * 0.5);
+		}
+
 		for(let i=0; i<this.stars.length; i++) {
 			this.stars[i].x -= this.speed;
 			let star = this.stars[i];
@@ -267,6 +439,14 @@ class StarSystem {
 					star.synth.connect(this.delay);
 					star.synth.triggerAttackRelease(star.pitch, '8n');
 					this.stars[i].activated = true;
+					// Добавление вспышки при активации звезды
+					this.flashes.push({
+						x: star.x,
+						y: star.y,
+						size: star.size * 3,
+						opacity: 1,
+						color: '#FFFFFF'
+					});
 				}
 			}
 
@@ -294,7 +474,10 @@ let system = new StarSystem({
 	starCount: 50,
 	speed: 0.6,
 	speedIncrement: 0.2
-})
+});
+
+system.currentInstrument = system.instruments[system.currentInstrumentIndex];
+system.currentBackground = system.backgrounds[system.currentBackgroundIndex];
 
 let playing = false;
 
@@ -328,6 +511,14 @@ document.getElementById('speeddown').addEventListener('click', ()=>{
 
 document.getElementById('speedup').addEventListener('click', ()=>{
 	system.changeSpeed('up');
+});
+
+document.getElementById('instrument').addEventListener('click', ()=>{
+	system.changeInstrument();
+});
+
+document.getElementById('background').addEventListener('click', ()=>{
+	system.changeBackground();
 });
 
 document.addEventListener('keydown', (e) => {

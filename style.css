@@ -132,3 +132,37 @@ body {
 .controls__pause:hover {
 	background-color: #FFC700;
 }
+
+.controls__instrument {
+	padding: 8px 10px;
+	background-color: #FFDB4D;
+	color: #000000;
+	border-radius: 6px;
+	cursor: pointer;
+	margin-left: 10px;
+	border: none;
+	font-size: 16px;
+	font-weight: 500;
+	transition: background-color 0.2s;
+}
+
+.controls__instrument:hover {
+	background-color: #FFC700;
+}
+
+.controls__background {
+	padding: 8px 10px;
+	background-color: #FFDB4D;
+	color: #000000;
+	border-radius: 6px;
+	cursor: pointer;
+	margin-left: 10px;
+	border: none;
+	font-size: 16px;
+	font-weight: 500;
+	transition: background-color 0.2s;
+}
+
+.controls__background:hover {
+	background-color: #FFC700;
+}
